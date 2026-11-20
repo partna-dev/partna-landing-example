@@ -1,0 +1,30 @@
+# partna-landing-example
+
+> Reference landing for the Partna partner programme: catalogue, partner discount,
+> certificate, lead form. Astro with Vue islands, plus a mock owner backend.
+
+Read order:
+
+1. `README.md` — what it shows and how to run it.
+2. `AGENTS.md` — hard rules and a checklist. Read before writing code.
+3. `data/catalog.json` — fixtures in the shape of the read contract.
+4. `src/lib/price.ts` — the only place a discounted price is computed.
+5. `src/components/OrderForm.vue` — lead form, idempotency key, server answer.
+6. `mock-backend/server.mjs` — what the owner backend does: validates, computes,
+   emits bridge-shaped facts.
+
+Rules in one line each:
+
+- money is computed on the server, the page only shows it;
+- `eventId` is unique forever; a retry reuses the stored one;
+- the tenant key never reaches the browser;
+- personal data stays with the owner, only identifiers travel;
+- payment and certificates belong to the owner, not the landing.
+
+Scenarios: `/` (no partner), `/?ref=IRON` (10% discount), `/order/p_consult?ref=IRON`
+with `CERT5000` (partial certificate), `/payment` (why money is not taken here).
+
+Run: `npm install && npm run mock` and `npm run dev`, or `docker compose up --build`.
+
+Contracts: `partna-bridge/spec` (facts), `partna-bridge/docs/integrations/fields.md`
+(fields), `partna-partner/docs/portal-api.md` (reading by partner token).

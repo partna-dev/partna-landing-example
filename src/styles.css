@@ -1,0 +1,230 @@
+:root {
+  --ink: #14181f;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #1f5f4b;
+  --tint: #eef4f1;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: #ffffff;
+  font: 16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+a {
+  color: var(--accent);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.top nav {
+  display: flex;
+  gap: 16px;
+}
+
+.top nav a {
+  text-decoration: none;
+  color: var(--muted);
+}
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 32px 0 12px;
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+.banner {
+  background: var(--tint);
+  border: 1px solid #d6e5dd;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.cards {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card small {
+  display: block;
+  color: var(--muted);
+}
+
+.price {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.price s {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.price strong {
+  display: block;
+  font-size: 18px;
+}
+
+.foot {
+  padding: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.form input {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+}
+
+.form button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.form button[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.alert {
+  padding: 12px 16px;
+  border: 1px solid #f0c9c9;
+  border-radius: 12px;
+  background: #fdf2f2;
+  color: #8a1f1f;
+}
+
+.result {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+
+.result pre {
+  overflow-x: auto;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.breakdown {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 4px;
+}
+
+.breakdown div:last-child {
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px 16px;
+  }
+
+  main {
+    padding: 24px 16px 48px;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .price {
+    text-align: left;
+  }
+}

@@ -1,0 +1,46 @@
+---
+import Base from "../../layouts/Base.astro";
+import OrderForm from "../../components/OrderForm.vue";
+import { CURRENCY, PARTNERS, findService, partnerCode, partnerDiscount, services } from "../../lib/catalog";
+import { money } from "../../lib/price";
+
+export function getStaticPaths() {
+  return services().map((item) => ({ params: { id: item.serviceId } }));
+}
+
+const service = findService(Astro.params.id);
+if (!service) {
+  return Astro.redirect("/");
+}
+
+const ref = partnerCode(Astro.url.searchParams.get("ref"));
+const knownPartner = Boolean(ref) && PARTNERS[ref] !== undefined;
+const discountBp = knownPartner ? partnerDiscount(PARTNERS[ref]) : 0;
+---
+
+<Base title={`Заявка — ${service.title}`} ref={ref}>
+  <h1>Заявка</h1>
+  <p class="lead">
+    {service.title}, цена по списку — {money(service.priceMinor, CURRENCY)}.
+  </p>
+
+  <OrderForm
+    client:visible
+    serviceId={service.serviceId}
+    currency={CURRENCY}
+    partner={knownPartner ? ref : ""}
+    discountBp={discountBp}
+  />
+
+  <h2>Что произойдёт дальше</h2>
+  <ol class="note">
+    <li>Заявка уходит на бэкенд владельца, он привязывает клиента к коду партнёра.</li>
+    <li>Сумму считает сервер владельца: цена, скидка, сертификат.</li>
+    <li>В ядро уезжают факты: участник и заказ. Каждый факт со своим идентификатором.</li>
+    <li>Оплата — на стороне владельца. Лендинг к деньгам не прикасается.</li>
+  </ol>
+  <p class="note">
+    В этом примере роль бэкенда владельца играет мок: он отвечает тем же, что ответил бы
+    настоящий. Правила — в <a href="/payment">разделе об оплате</a>.
+  </p>
+</Base>

@@ -1,0 +1,66 @@
+---
+import Base from "../layouts/Base.astro";
+import PriceTag from "../components/PriceTag.vue";
+import {
+  BRAND,
+  CURRENCY,
+  PARTNERS,
+  partnerCode,
+  partnerDiscount,
+  services,
+} from "../lib/catalog";
+import { percent } from "../lib/price";
+
+const ref = partnerCode(Astro.url.searchParams.get("ref"));
+const knownPartner = Boolean(ref) && PARTNERS[ref] !== undefined;
+const discountBp = knownPartner ? partnerDiscount(PARTNERS[ref]) : 0;
+const suffix = ref ? `?ref=${ref}` : "";
+const items = services();
+---
+
+<Base
+  title={`${BRAND} — услуги и цены`}
+  description="Каталог услуг с ценами. Пример лендинга партнёрской программы."
+  ref={ref}
+>
+  <h1>{BRAND}</h1>
+  <p class="lead">
+    Три услуги, три сценария: обычный клиент, клиент по ссылке партнёра и оплата
+    сертификатом.
+  </p>
+
+  {
+    knownPartner && (
+      <p class="banner">
+        Вы пришли по ссылке партнёра <strong>{ref}</strong>. Скидка{" "}
+        {percent(discountBp)} уже в цене.
+      </p>
+    )
+  }
+
+  <div class="cards">
+    {
+      items.map((item) => (
+        <a class="card" href={`/service/${item.serviceId}${suffix}`}>
+          <span>
+            <strong>{item.title}</strong>
+            <small>{item.note}</small>
+          </span>
+          <PriceTag
+            client:load
+            priceMinor={item.priceMinor}
+            discountBp={discountBp}
+            currency={CURRENCY}
+          />
+        </a>
+      ))
+    }
+  </div>
+
+  <h2>Что здесь показано</h2>
+  <p class="note">
+    Страница собрана на Astro: текст и цены видны в исходном HTML, оживает только
+    блок с ценой. Скидку считает правило из контракта, а не вёрстка. Сертификат
+    применяется на следующем шаге, при оплате у владельца.
+  </p>
+</Base>

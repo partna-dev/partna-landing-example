@@ -1,0 +1,62 @@
+---
+import Base from "../../layouts/Base.astro";
+import PriceTag from "../../components/PriceTag.vue";
+import {
+  CURRENCY,
+  PARTNERS,
+  findService,
+  partnerCode,
+  partnerDiscount,
+  services,
+} from "../../lib/catalog";
+import { percent } from "../../lib/price";
+
+export function getStaticPaths() {
+  return services().map((item) => ({ params: { id: item.serviceId } }));
+}
+
+const service = findService(Astro.params.id);
+if (!service) {
+  return Astro.redirect("/");
+}
+
+const ref = partnerCode(Astro.url.searchParams.get("ref"));
+const knownPartner = Boolean(ref) && PARTNERS[ref] !== undefined;
+const discountBp = knownPartner ? partnerDiscount(PARTNERS[ref]) : 0;
+const suffix = ref ? `?ref=${ref}` : "";
+---
+
+<Base title={`${service.title} — цена`} description={service.note} ref={ref}>
+  <h1>{service.title}</h1>
+  <p class="lead">{service.note}</p>
+
+  <div class="card">
+    <span>
+      <small>{service.categoryTitle}</small>
+      <strong>{service.title}</strong>
+    </span>
+    <PriceTag
+      client:load
+      priceMinor={service.priceMinor}
+      discountBp={discountBp}
+      currency={CURRENCY}
+    />
+  </div>
+
+  {
+    knownPartner && (
+      <p class="banner">
+        Скидка партнёра {ref}: {percent(discountBp)}. Сумму всё равно пересчитает
+        сервер владельца при оплате.
+      </p>
+    )
+  }
+
+  <p>
+    <a class="cta" href={`/order/${service.serviceId}${suffix}`}>Оставить заявку</a>
+  </p>
+  <p class="note">
+    Заявка — единственное, что делает лендинг. Деньги и сертификат проводит
+    владелец: <a href="/payment">почему так</a>.
+  </p>
+</Base>

@@ -1,0 +1,19 @@
+{
+  "name": "partna-landing-example",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reference landing for the Partna partner programme: catalogue, partner discount, certificate",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "node ./dist/server/entry.mjs",
+    "mock": "node mock-backend/server.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^11.1.14",
+    "@astrojs/vue": "^7.1.6",
+    "astro": "^7.4.13",
+    "vue": "^3.5.45"
+  }
+}

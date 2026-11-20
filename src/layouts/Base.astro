@@ -1,0 +1,37 @@
+---
+import "../styles.css";
+
+const {
+  title = "Студия «Тон»",
+  description = "Услуги, цены и партнёрская программа",
+  ref = "",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href={ref ? `/?ref=${ref}` : "/"}>Студия «Тон»</a>
+      <nav>
+        <a href={ref ? `/?ref=${ref}` : "/"}>Каталог</a>
+        <a href="/payment">Оплата</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="foot">
+      Пример лендинга партнёрской программы. Данные вымышленные.
+    </footer>
+  </body>
+</html>

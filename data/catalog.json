@@ -1,0 +1,34 @@
+{
+  "tenantId": "demo",
+  "brand": "Студия «Тон»",
+  "currency": "RUB",
+  "discount": { "limitBp": 1000, "currentBp": 500 },
+  "partners": { "IRON": 1000, "MASHA": 500 },
+  "certificates": { "CERT5000": 300000 },
+  "services": [
+    {
+      "serviceId": "p_consult",
+      "title": "Разбор запроса",
+      "category": "consult",
+      "categoryTitle": "Консультации",
+      "priceMinor": 500000,
+      "note": "Час один на один, разбираем запрос и план на месяц"
+    },
+    {
+      "serviceId": "p_support",
+      "title": "Сопровождение, месяц",
+      "category": "support",
+      "categoryTitle": "Сопровождение",
+      "priceMinor": 1200000,
+      "note": "Четыре встречи и переписка между ними"
+    },
+    {
+      "serviceId": "p_retreat",
+      "title": "Ретрит выходного дня",
+      "category": "events",
+      "categoryTitle": "События",
+      "priceMinor": 250000,
+      "note": "Два дня в загородном доме, группа до двенадцати человек"
+    }
+  ]
+}
