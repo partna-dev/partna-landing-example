@@ -8,7 +8,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "node ./dist/server/entry.mjs",
-    "mock": "node mock-backend/server.mjs"
+    "mock": "node mock-backend/server.mjs",
+    "accept": "node scripts/acceptance.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.14",

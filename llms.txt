@@ -25,6 +25,12 @@ Scenarios: `/` (no partner), `/?ref=IRON` (10% discount), `/order/p_consult?ref=
 with `CERT5000` (partial certificate), `/payment` (why money is not taken here).
 
 Run: `npm install && npm run mock` and `npm run dev`, or `docker compose up --build`.
+Checks: `npm run accept` (numbers, idempotency, unknown partner, expired certificate).
+
+Lead contract: `POST /api/lead` with a required `Idempotency-Key` header; fields
+`serviceId`, `name`, `contact`, `partner`, `certificate`; answer carries
+`priceMinor`, `discountMinor`, `clientPriceMinor`, `certificateMinor`,
+`certificateLeftMinor`, `dueMinor`, `duplicate`, `facts`.
 
 Contracts: `partna-bridge/spec` (facts), `partna-bridge/docs/integrations/fields.md`
 (fields), `partna-partner/docs/portal-api.md` (reading by partner token).

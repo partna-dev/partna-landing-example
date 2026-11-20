@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { money } from "../lib/price";
 
 type LeadResponse = {
   leadId: string;
   priceMinor: number;
+  discountMinor: number;
+  clientPriceMinor: number;
   discountBp: number;
   certificateMinor: number;
+  certificateLeftMinor: number;
   dueMinor: number;
   duplicate: boolean;
   facts: Array<{ method: string; path: string; body: Record<string, unknown> }>;
@@ -20,6 +23,7 @@ const props = defineProps<{
 }>();
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:8787";
+const STORAGE_KEY = "partna-example-lead-key";
 
 const name = ref("");
 const contact = ref("");
@@ -27,14 +31,16 @@ const certificate = ref("");
 const pending = ref(false);
 const error = ref("");
 const result = ref<LeadResponse | null>(null);
+const idempotencyKey = ref("");
 
-const idempotencyKey = `lead-${crypto.randomUUID()}`;
-
-const due = computed(() => {
-  if (!result.value) {
-    return "";
+onMounted(() => {
+  const stored = sessionStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    idempotencyKey.value = stored;
+    return;
   }
-  return money(result.value.dueMinor, props.currency);
+  idempotencyKey.value = `lead-${crypto.randomUUID()}`;
+  sessionStorage.setItem(STORAGE_KEY, idempotencyKey.value);
 });
 
 async function submit() {
@@ -46,7 +52,7 @@ async function submit() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Idempotency-Key": idempotencyKey,
+        "Idempotency-Key": idempotencyKey.value,
       },
       body: JSON.stringify({
         serviceId: props.serviceId,
@@ -68,6 +74,14 @@ async function submit() {
     pending.value = false;
   }
 }
+
+function startNew() {
+  sessionStorage.removeItem(STORAGE_KEY);
+  sessionStorage.setItem(STORAGE_KEY, `lead-${crypto.randomUUID()}`);
+  idempotencyKey.value = sessionStorage.getItem(STORAGE_KEY) || "";
+  result.value = null;
+  error.value = "";
+}
 </script>
 
 <template>
@@ -84,7 +98,7 @@ async function submit() {
       Код сертификата, если есть
       <input v-model="certificate" maxlength="24" placeholder="CERT5000" />
     </label>
-    <button type="submit" :disabled="pending">
+    <button type="submit" :disabled="pending || !idempotencyKey">
       {{ pending ? "Отправляем" : "Оставить заявку" }}
     </button>
   </form>
@@ -95,15 +109,20 @@ async function submit() {
     <h2>Заявка принята</h2>
     <div class="breakdown">
       <div><span>Цена без скидки</span><span>{{ money(result.priceMinor, currency) }}</span></div>
-      <div><span>Скидка партнёра</span><span>{{ result.discountBp / 100 }}%</span></div>
+      <div><span>Скидка партнёра</span><span>{{ money(result.discountMinor, currency) }} · {{ result.discountBp / 100 }}%</span></div>
+      <div><span>Цена со скидкой</span><span>{{ money(result.clientPriceMinor, currency) }}</span></div>
       <div><span>Оплачено сертификатом</span><span>{{ money(result.certificateMinor, currency) }}</span></div>
-      <div><span>К оплате владельцу</span><span>{{ due }}</span></div>
+      <div><span>Осталось на сертификате</span><span>{{ money(result.certificateLeftMinor, currency) }}</span></div>
+      <div><span>К оплате владельцу</span><span>{{ money(result.dueMinor, currency) }}</span></div>
     </div>
     <p class="note">
       Эти суммы посчитал сервер, а не страница. Так же их посчитает владелец при оплате.
-      <span v-if="result.duplicate">Повтор с тем же ключом вернул прежний ответ и не создал второе начисление.</span>
+      <span v-if="result.duplicate">
+        Это повтор с тем же ключом: вернулся прежний ответ, второго начисления не будет.
+      </span>
     </p>
     <p class="note">Что сервер отправит в мост:</p>
     <pre>{{ JSON.stringify(result.facts, null, 2) }}</pre>
+    <button type="button" class="secondary" @click="startNew">Новая заявка</button>
   </section>
 </template>

@@ -9,11 +9,17 @@ export type Service = {
   note: string;
 };
 
+export type Certificate = {
+  remainingMinor: number;
+  expiresAt: string;
+};
+
 export const BRAND = catalog.brand;
 export const TENANT_ID = catalog.tenantId;
 export const CURRENCY = catalog.currency;
 export const PARTNERS: Record<string, number> = catalog.partners;
-export const CERTIFICATES: Record<string, number> = catalog.certificates;
+export const CERTIFICATES: Record<string, Certificate> = catalog.certificates;
+export const DISCOUNT_LIMIT_BP = catalog.discount.limitBp;
 
 export function services(): Service[] {
   return catalog.services;
@@ -31,7 +37,7 @@ export function partnerCode(value: string | null | undefined): string {
 }
 
 export function partnerDiscount(discountBp: number | undefined): number {
-  return Math.max(0, Math.min(Math.trunc(Number(discountBp) || 0), catalog.discount.limitBp));
+  return Math.max(0, Math.min(Math.trunc(Number(discountBp) || 0), DISCOUNT_LIMIT_BP));
 }
 
 export function certificateRemaining(code: string | null | undefined): number {
@@ -39,5 +45,12 @@ export function certificateRemaining(code: string | null | undefined): number {
   if (!normalized) {
     return 0;
   }
-  return CERTIFICATES[normalized] || 0;
+  const certificate = CERTIFICATES[normalized];
+  if (!certificate) {
+    return 0;
+  }
+  if (certificate.expiresAt && new Date(certificate.expiresAt) < new Date()) {
+    return 0;
+  }
+  return certificate.remainingMinor || 0;
 }

@@ -4,7 +4,10 @@
   "currency": "RUB",
   "discount": { "limitBp": 1000, "currentBp": 500 },
   "partners": { "IRON": 1000, "MASHA": 500 },
-  "certificates": { "CERT5000": 300000 },
+  "certificates": {
+    "CERT5000": { "remainingMinor": 300000, "expiresAt": "2026-12-31" },
+    "CERTOLD": { "remainingMinor": 100000, "expiresAt": "2026-01-01" }
+  },
   "services": [
     {
       "serviceId": "p_consult",

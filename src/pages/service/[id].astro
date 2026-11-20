@@ -2,18 +2,14 @@
 import Base from "../../layouts/Base.astro";
 import PriceTag from "../../components/PriceTag.vue";
 import {
+  BRAND,
   CURRENCY,
   PARTNERS,
   findService,
   partnerCode,
   partnerDiscount,
-  services,
 } from "../../lib/catalog";
 import { percent } from "../../lib/price";
-
-export function getStaticPaths() {
-  return services().map((item) => ({ params: { id: item.serviceId } }));
-}
 
 const service = findService(Astro.params.id);
 if (!service) {
@@ -26,7 +22,7 @@ const discountBp = knownPartner ? partnerDiscount(PARTNERS[ref]) : 0;
 const suffix = ref ? `?ref=${ref}` : "";
 ---
 
-<Base title={`${service.title} — цена`} description={service.note} ref={ref}>
+<Base brand={BRAND} title={`${service.title} — цена`} description={service.note} ref={ref}>
   <h1>{service.title}</h1>
   <p class="lead">{service.note}</p>
 

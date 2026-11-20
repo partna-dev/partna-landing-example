@@ -42,6 +42,7 @@ This repository is an example. The truth about contracts lives in
 3. Who computes the price the client sees, and where is that formula written?
 4. Where is `eventId` created, and where is it stored before the first request?
 5. What happens when the bridge is down: queue, retry later, or show an error?
+   (The example does not answer this; the bridge does, see its integration levels.)
 6. Which fields are required by `POST /v1/order` for this service?
 7. Does the flow ever refund? If yes, who sends `refund` and with which `orderId`?
 8. What does the page do with a certificate code that is expired or already used?
@@ -53,6 +54,7 @@ This repository is an example. The truth about contracts lives in
 
 ```bash
 npm install
+npm run accept   # numbers, idempotency, refusals
 npm run mock &
 npm run dev
 ```
@@ -63,7 +65,9 @@ npm run dev
 - submit the same form twice with the same `Idempotency-Key` and check that the
   answer returns `duplicate: true` and the same `leadId`;
 - open `/payment` and check that no page calls the core API directly:
-  `grep -rn "v1/" src/` should return nothing.
+  `grep -rn "v1/" src/` should return nothing;
+- `CERTOLD` is refused as expired, `PIRATE` as an unknown partner, and a request
+  without `Idempotency-Key` as `400`.
 
 ## Map
 
@@ -71,7 +75,9 @@ npm run dev
 - `src/lib/price.ts` — money and discount;
 - `src/lib/catalog.ts` — reading fixtures, partner code normalisation;
 - `src/pages/` — routes;
-- `mock-backend/server.mjs` — what the owner backend does, including idempotency;
+- `mock-backend/server.mjs` — what the owner backend does: validates the partner,
+  spends the certificate once, computes the money, keeps the idempotency map;
+- `scripts/acceptance.mjs` — the checks above as a script;
 - `README.md`, `README.ru.md` — the human tour.
 
 ## Contracts

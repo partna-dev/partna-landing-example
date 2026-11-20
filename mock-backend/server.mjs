@@ -9,20 +9,21 @@ const catalog = JSON.parse(readFileSync(join(here, "..", "data", "catalog.json")
 const PORT = Number(process.env.PORT || 8787);
 
 const partners = catalog.partners || {};
-const certificates = catalog.certificates || {};
 const limitBp = catalog.discount?.limitBp || 0;
+const certificates = new Map(
+  Object.entries(catalog.certificates || {}).map(([code, item]) => [code, { ...item }]),
+);
 
 const seen = new Map();
 
 function json(response, status, body) {
-  const payload = JSON.stringify(body);
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, Idempotency-Key",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
   });
-  response.end(payload);
+  response.end(JSON.stringify(body));
 }
 
 function readBody(request) {
@@ -57,7 +58,16 @@ function normalizeCode(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
 }
 
-function lead(body) {
+function certificateState(code, moment) {
+  const item = certificates.get(code);
+  if (!item) {
+    return { known: false, remainingMinor: 0, expired: false };
+  }
+  const expired = Boolean(item.expiresAt) && new Date(item.expiresAt) < moment;
+  return { known: true, remainingMinor: item.remainingMinor, expired };
+}
+
+function lead(body, moment) {
   const service = catalog.services.find((item) => item.serviceId === body.serviceId);
   if (!service) {
     throw new Error("unknown service");
@@ -69,13 +79,26 @@ function lead(body) {
   }
 
   const code = normalizeCode(body.partner);
+  if (code && partners[code] === undefined) {
+    throw new Error("unknown partner code");
+  }
   const discountBp = Math.min(partners[code] || 0, limitBp);
   const priceMinor = service.priceMinor;
-  const afterDiscount = priceMinor - discountMinor(priceMinor, discountBp);
+  const discount = discountMinor(priceMinor, discountBp);
+  const afterDiscount = priceMinor - discount;
 
   const certificateCode = normalizeCode(body.certificate);
-  const remaining = certificates[certificateCode] || 0;
-  const certificateMinor = Math.min(remaining, afterDiscount);
+  const certificate = certificateState(certificateCode, moment);
+  if (certificateCode && certificate.expired) {
+    throw new Error("certificate expired");
+  }
+  const certificateMinor = Math.min(certificate.remainingMinor, afterDiscount);
+  if (certificateCode && certificate.known) {
+    certificates.set(certificateCode, {
+      ...certificates.get(certificateCode),
+      remainingMinor: certificate.remainingMinor - certificateMinor,
+    });
+  }
 
   const leadId = randomUUID();
   const due = afterDiscount - certificateMinor;
@@ -83,8 +106,13 @@ function lead(body) {
   return {
     leadId,
     priceMinor,
+    discountMinor: discount,
+    clientPriceMinor: afterDiscount,
     discountBp,
     certificateMinor,
+    certificateLeftMinor: certificate.known
+      ? certificate.remainingMinor - certificateMinor
+      : 0,
     dueMinor: due,
     duplicate: false,
     facts: [
@@ -101,7 +129,7 @@ function lead(body) {
         path: "/v1/order",
         body: {
           eventId: randomUUID(),
-          occurredAt: new Date().toISOString(),
+          occurredAt: moment.toISOString(),
           orderId: leadId,
           memberId: contact,
           amount: due,
@@ -124,6 +152,16 @@ createServer(async (request, response) => {
     return json(response, 200, { status: "ok", services: catalog.services.length });
   }
   if (request.method === "POST" && request.url === "/api/lead") {
+    const key = String(request.headers["idempotency-key"] || "").trim();
+    if (!key) {
+      return json(response, 400, { detail: "Idempotency-Key header is required" });
+    }
+
+    const cached = seen.get(key);
+    if (cached) {
+      return json(response, 200, { ...cached, duplicate: true });
+    }
+
     let body;
     try {
       body = await readBody(request);
@@ -131,17 +169,9 @@ createServer(async (request, response) => {
       return json(response, 400, { detail: String(error.message) });
     }
 
-    const key = String(request.headers["idempotency-key"] || body.contact || "");
-    const cached = key ? seen.get(key) : undefined;
-    if (cached) {
-      return json(response, 200, { ...cached, duplicate: true });
-    }
-
     try {
-      const answer = lead(body);
-      if (key) {
-        seen.set(key, answer);
-      }
+      const answer = lead(body, new Date());
+      seen.set(key, answer);
       return json(response, 200, answer);
     } catch (error) {
       return json(response, 422, { detail: String(error.message) });

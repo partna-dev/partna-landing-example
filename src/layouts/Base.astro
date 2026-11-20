@@ -2,6 +2,7 @@
 import "../styles.css";
 
 const {
+  brand = "Студия «Тон»",
   title = "Студия «Тон»",
   description = "Услуги, цены и партнёрская программа",
   ref = "",
@@ -21,7 +22,7 @@ const {
   </head>
   <body>
     <header class="top">
-      <a class="brand" href={ref ? `/?ref=${ref}` : "/"}>Студия «Тон»</a>
+      <a class="brand" href={ref ? `/?ref=${ref}` : "/"}>{brand}</a>
       <nav>
         <a href={ref ? `/?ref=${ref}` : "/"}>Каталог</a>
         <a href="/payment">Оплата</a>

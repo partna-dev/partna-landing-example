@@ -1,12 +1,8 @@
 ---
 import Base from "../../layouts/Base.astro";
 import OrderForm from "../../components/OrderForm.vue";
-import { CURRENCY, PARTNERS, findService, partnerCode, partnerDiscount, services } from "../../lib/catalog";
+import { BRAND, CURRENCY, PARTNERS, findService, partnerCode, partnerDiscount } from "../../lib/catalog";
 import { money } from "../../lib/price";
-
-export function getStaticPaths() {
-  return services().map((item) => ({ params: { id: item.serviceId } }));
-}
 
 const service = findService(Astro.params.id);
 if (!service) {
@@ -18,17 +14,26 @@ const knownPartner = Boolean(ref) && PARTNERS[ref] !== undefined;
 const discountBp = knownPartner ? partnerDiscount(PARTNERS[ref]) : 0;
 ---
 
-<Base title={`Заявка — ${service.title}`} ref={ref}>
+<Base brand={BRAND} title={`Заявка — ${service.title}`} ref={ref}>
   <h1>Заявка</h1>
   <p class="lead">
     {service.title}, цена по списку — {money(service.priceMinor, CURRENCY)}.
   </p>
 
+  {
+    ref && !knownPartner && (
+      <p class="banner">
+        Код партнёра <strong>{ref}</strong> не найден. Бэкенд отклонит такую
+        заявку: неизвестный код не должен привязывать клиента.
+      </p>
+    )
+  }
+
   <OrderForm
     client:visible
     serviceId={service.serviceId}
     currency={CURRENCY}
-    partner={knownPartner ? ref : ""}
+    partner={ref}
     discountBp={discountBp}
   />
 
