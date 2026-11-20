@@ -10,8 +10,13 @@ const PORT = Number(process.env.PORT || 8787);
 
 const partners = catalog.partners || {};
 const limitBp = catalog.discount?.limitBp || 0;
+const CERT_RESET_MS = Number(process.env.CERT_RESET_MINUTES || 0) * 60_000;
+
 const certificates = new Map(
-  Object.entries(catalog.certificates || {}).map(([code, item]) => [code, { ...item }]),
+  Object.entries(catalog.certificates || {}).map(([code, item]) => [
+    code,
+    { ...item, initialMinor: item.remainingMinor, spentAt: 0 },
+  ]),
 );
 
 const seen = new Map();
@@ -97,6 +102,21 @@ function certificateState(code, moment) {
   if (!item) {
     return { known: false, remainingMinor: 0, expired: false };
   }
+
+  const spentLongAgo =
+    item.remainingMinor <= 0 &&
+    item.spentAt > 0 &&
+    CERT_RESET_MS > 0 &&
+    moment.getTime() - item.spentAt > CERT_RESET_MS;
+  if (spentLongAgo) {
+    certificates.set(code, {
+      ...item,
+      remainingMinor: item.initialMinor,
+      spentAt: 0,
+    });
+    item.remainingMinor = item.initialMinor;
+  }
+
   const expired = Boolean(item.expiresAt) && new Date(item.expiresAt) < moment;
   return { known: true, remainingMinor: item.remainingMinor, expired };
 }
@@ -128,9 +148,11 @@ function lead(body, moment) {
   }
   const certificateMinor = Math.min(certificate.remainingMinor, afterDiscount);
   if (certificateCode && certificate.known) {
+    const left = certificate.remainingMinor - certificateMinor;
     certificates.set(certificateCode, {
       ...certificates.get(certificateCode),
-      remainingMinor: certificate.remainingMinor - certificateMinor,
+      remainingMinor: left,
+      spentAt: left <= 0 ? moment.getTime() : 0,
     });
   }
 

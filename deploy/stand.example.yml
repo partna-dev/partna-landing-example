@@ -1,0 +1,41 @@
+# Пример выкладки стенда: тот же образ, маршрут через Traefik и заглушка бэкенда.
+# Домен и имя внешней сети замените на свои. Ключей здесь нет: стенд работает без них.
+services:
+  web:
+    build:
+      context: ..
+      args:
+        PUBLIC_API_BASE: https://example.partna.dev
+        PUBLIC_ROBOTS: noindex
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.landing-example.rule=Host(`example.partna.dev`)
+      - traefik.http.routers.landing-example.entrypoints=websecure
+      - traefik.http.routers.landing-example.tls.certresolver=letsencrypt
+      - traefik.http.services.landing-example.loadbalancer.server.port=4321
+
+  mock:
+    image: node:22-alpine
+    working_dir: /app
+    command: node mock-backend/server.mjs
+    restart: unless-stopped
+    environment:
+      CERT_RESET_MINUTES: "10"
+    volumes:
+      - ..:/app:ro
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.landing-example-api.rule=Host(`example.partna.dev`) && PathPrefix(`/api`)
+      - traefik.http.routers.landing-example-api.priority=100
+      - traefik.http.routers.landing-example-api.entrypoints=websecure
+      - traefik.http.routers.landing-example-api.tls.certresolver=letsencrypt
+      - traefik.http.services.landing-example-api.loadbalancer.server.port=8787
+
+networks:
+  traefik:
+    external: true

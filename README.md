@@ -54,7 +54,9 @@ certificates come from [data/catalog.json](data/catalog.json).
 
 `PUBLIC_ROBOTS` controls indexing: `index` by default, `noindex` on a stand that
 should stay out of search. The mock limits `/api/lead` to ten requests per minute
-per address and keeps answers only in memory.
+per address and keeps answers only in memory. `CERT_RESET_MINUTES` restores a spent
+certificate after that many minutes — the live stand uses it so the demo does not
+run out; leave it unset to see a certificate stay spent.
 
 ## Structure
 

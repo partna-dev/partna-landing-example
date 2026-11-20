@@ -85,6 +85,8 @@ npm run dev
 `PUBLIC_ROBOTS=noindex` is set on the public stand, `index` is the default. The mock
 limits `/api/lead` per address and keeps state in memory only: nothing survives a
 restart, which is why the stand can be public without a database.
+`CERT_RESET_MINUTES` brings a spent certificate back, so the public demo keeps
+working; without it the certificate stays spent on purpose.
 
 ## Contracts
 
