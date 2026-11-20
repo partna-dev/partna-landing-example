@@ -20,6 +20,11 @@ backend is a mock.
 | Why the page cannot take money | `/payment` | The boundary between landing, owner backend and core |
 | What the server would send | `/order/<service>` after submit | Two facts shaped like the bridge contract |
 
+## Live example
+
+<https://example.partna.dev> — the same code with `noindex` and a memory-only
+backend. Nothing is stored, the certificate and the catalogue are reset on restart.
+
 ## Run it
 
 ```bash
@@ -46,6 +51,10 @@ certificate. Exit code 1 on any mismatch.
 
 No keys, no accounts and no Partna services are needed: prices, partners and
 certificates come from [data/catalog.json](data/catalog.json).
+
+`PUBLIC_ROBOTS` controls indexing: `index` by default, `noindex` on a stand that
+should stay out of search. The mock limits `/api/lead` to ten requests per minute
+per address and keeps answers only in memory.
 
 ## Structure
 

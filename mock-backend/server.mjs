@@ -15,6 +15,40 @@ const certificates = new Map(
 );
 
 const seen = new Map();
+const hits = new Map();
+
+const RATE_LIMIT = Number(process.env.RATE_LIMIT || 10);
+const RATE_WINDOW_MS = 60_000;
+const SEEN_TTL_MS = 60 * 60 * 1000;
+const SEEN_MAX = 500;
+
+function clientAddress(request) {
+  const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwarded || request.socket.remoteAddress || "unknown";
+}
+
+function allow(address, moment) {
+  const recent = (hits.get(address) || []).filter((at) => moment - at < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) {
+    hits.set(address, recent);
+    return false;
+  }
+  recent.push(moment);
+  hits.set(address, recent);
+  return true;
+}
+
+function trimSeen(moment) {
+  for (const [key, value] of seen) {
+    if (moment - value.at > SEEN_TTL_MS) {
+      seen.delete(key);
+    }
+  }
+  while (seen.size > SEEN_MAX) {
+    const oldest = seen.keys().next().value;
+    seen.delete(oldest);
+  }
+}
 
 function json(response, status, body) {
   response.writeHead(status, {
@@ -157,9 +191,15 @@ createServer(async (request, response) => {
       return json(response, 400, { detail: "Idempotency-Key header is required" });
     }
 
+    const moment = new Date();
+    if (!allow(clientAddress(request), moment.getTime())) {
+      return json(response, 429, { detail: "too many requests" });
+    }
+
+    trimSeen(moment.getTime());
     const cached = seen.get(key);
     if (cached) {
-      return json(response, 200, { ...cached, duplicate: true });
+      return json(response, 200, { ...cached.answer, duplicate: true });
     }
 
     let body;
@@ -170,8 +210,8 @@ createServer(async (request, response) => {
     }
 
     try {
-      const answer = lead(body, new Date());
-      seen.set(key, answer);
+      const answer = lead(body, moment);
+      seen.set(key, { at: moment.getTime(), answer });
       return json(response, 200, answer);
     } catch (error) {
       return json(response, 422, { detail: String(error.message) });

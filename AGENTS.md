@@ -80,6 +80,12 @@ npm run dev
 - `scripts/acceptance.mjs` — the checks above as a script;
 - `README.md`, `README.ru.md` — the human tour.
 
+## Deployment note
+
+`PUBLIC_ROBOTS=noindex` is set on the public stand, `index` is the default. The mock
+limits `/api/lead` per address and keeps state in memory only: nothing survives a
+restart, which is why the stand can be public without a database.
+
 ## Contracts
 
 - facts: https://github.com/partna-dev/partna-bridge/blob/main/spec/README.md

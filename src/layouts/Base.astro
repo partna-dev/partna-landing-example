@@ -6,6 +6,7 @@ const {
   title = "Студия «Тон»",
   description = "Услуги, цены и партнёрская программа",
   ref = "",
+  robots = import.meta.env.PUBLIC_ROBOTS || "index",
 } = Astro.props;
 ---
 
@@ -19,6 +20,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta name="robots" content={robots} />
   </head>
   <body>
     <header class="top">

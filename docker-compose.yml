@@ -5,6 +5,7 @@ services:
       - "4321:4321"
     environment:
       PUBLIC_API_BASE: http://localhost:8787
+      PUBLIC_ROBOTS: index
     depends_on:
       - mock
 
